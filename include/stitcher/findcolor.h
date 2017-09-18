@@ -32,3 +32,5 @@ void  findcolor(Mat& src, vector<Mat >& roiJeune, Mat& imgcnt,  vector<vector<Po
 
 
 void giveme1d( vector<vector<string > >& color_to_an1, vector<vector<RotatedRect > >& rect_to_an1, vector<RotatedRect >& positions1,   vector<string >& clrs1);
+
+

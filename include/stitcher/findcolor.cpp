@@ -15,6 +15,7 @@ using namespace std;
 
 #define PI 3.14159265
 // Function header
+void find_circle_pls(Mat& src, bool yn);
 Mat rotate(Mat src, double angle);
 void perspective_transformation(Mat& input, Mat& output,   RotatedRect minRect);
 void take_contours(Mat& src, Mat& src_gray, Mat& imgcnt, vector<vector<Point> >& contours, vector<Vec4i>& hierarchy, vector<RotatedRect>& minRect, Mat& test, vector<vector<Point> >& triangles, vector<Vec4i>& hierarchyOfTriangles);
@@ -211,6 +212,7 @@ void  findcolor(Mat& src, vector<Mat >& roiJeune, Mat& imgcnt,  vector<vector<Po
   bool trig; int change1, change2;
 
   vector<string> clr_definedM1, clr_definedM2;
+
   vector<vector<Point> > contours;
 
   vector<Vec4i> hierarchy;
@@ -316,28 +318,47 @@ void  findcolor(Mat& src, vector<Mat >& roiJeune, Mat& imgcnt,  vector<vector<Po
   }//2
 
 
-//visualisation //change minRectToWrite and clr_defined
-
+//visualisation 
+//change minRectToWrite and clr_defined
 
   for(int vis = 0; vis < minRectToWrite2.size(); vis++){//2
       putText(imgcnt, clr_definedM2[vis], minRectToWrite2[vis].center,  FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0,255, 0), 1,8, false );
     if((clr_definedM2[vis] == "yellow")||(clr_definedM2[vis] == "orange"))
-      yellowFields1.push_back(minRectToWrite1[vis]);
+      yellowFields2.push_back(minRectToWrite1[vis]);
   }//2
 
   for(int vis = 0; vis < minRectToWrite1.size(); vis++){//2 //
-      outputFinal_.push_back(minRectToWrite1[vis]);///////-****************
-      names.push_back(clr_definedM1[vis]);
+      outputFinal_.push_back(minRectToWrite1[vis]);
+///////-**************** CIRCLES
+
+	if(clr_definedM1[vis] == "blue")
+	{
+	  Mat double_I;
+ 	  roi.convertTo(double_I, CV_8U);
+	  cvtColor( double_I, double_I, CV_BGR2GRAY );
+	  vector<Vec3f> circles;
+          HoughCircles( double_I, circles, CV_HOUGH_GRADIENT, 1,  double_I.rows/8, 200, 100, 0, 0 );
+	  if(circles.size() != 0)
+	    names.push_back("circle");
+	  else
+	    names.push_back(clr_definedM1[vis]);
+	}
+	else
+	  names.push_back(clr_definedM1[vis]);
+
+//*******************************************
+      
+
       putText(imgcnt, clr_definedM1[vis], Point(minRectToWrite1[vis].center.x,minRectToWrite1[vis].center.y - 10),  FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0,0, 255), 1,8, false );
     if((clr_definedM1[vis] == "yellow")||(clr_definedM1[vis] == "orange"))
-      yellowFields2.push_back(minRectToWrite1[vis]);
+      yellowFields1.push_back(minRectToWrite1[vis]);
   }//2
   //names = clr_definedM1;
 
 //Creating of a images massive with yellow background  
   Point coor_prec;
   Mat roiY;
-  
+
   for(int j1 = 0; j1 < yellowFields1.size(); j1++ ){//2
     if(j1 == 0){//3
         perspective_transformation(src, roiY, yellowFields1[j1]);
@@ -509,41 +530,39 @@ static double angle( Point pt1, Point pt2, Point pt0 )
 
 
 void define_color(vector<string>& clr_definedM1, Mat& roi,   vector<string>& clr_names, vector<Scalar>& clr_min, vector<Scalar>& clr_max,  vector<double> largestSizeM1, Mat& test){
-  Mat tresholded, imgHSV;
+  Mat tresholded, imgHSV, src_gray;
   int maxNMB, contourArea;
   vector<int > contour_area;
   vector<vector<Point> > cnts;
   vector<int > NMBS;
   vector<int > areas;
   vector<Vec4i> hrs;
-  bool trig;
-cout<< " we are in define_color " <<" roi.type() " << roi.type() << endl;
+  bool trig; int to_write;
+
   if(roi.type() == 16){ // with no reasons it gives sometimes 5 instead of 16, this condition protects the algorithme
 
-cout<<" DEFINE_COLOR "<< clr_names.size() <<endl;
-//double(contourArea / imgHSV.cols * imgHSV.rows )<<
+
+
   cvtColor(roi, imgHSV, CV_BGR2HSV, 3);
+  trig = false;
+     dilate( imgHSV, imgHSV, getStructuringElement(MORPH_ELLIPSE, Size(7, 7)) ); 
+     medianBlur ( imgHSV, imgHSV, 7 );
   for(int j = 0; j < clr_names.size(); j++){
      contourArea = 0;
-     trig = false;
      inRange(imgHSV, clr_min[j], clr_max[j], tresholded);
      findContours( tresholded, cnts, hrs, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-
      //moments
      vector<Moments> mu(cnts.size() );
      for( size_t i = 0; i < cnts.size(); i++ ){
        mu[i] = moments( cnts[i], false );
        contourArea += mu[i].m00 ;
      }
-
-     
-     if((contourArea > 0.41 * imgHSV.cols * imgHSV.rows)&&(!trig)){
-	clr_definedM1.push_back(clr_names[j]);
-        trig = true;	}
-//       contour_area.push_back(contourArea);
+     if((contourArea > 0.41 * imgHSV.cols * imgHSV.rows)&&(trig == false)){
+         clr_definedM1.push_back(clr_names[j]);
+       trig = true;	}
    }
   }
-
+  
 }
 
 /*void define_color(vector<string>& clr_definedM1, Mat& roi,   vector<string>& clr_names, vector<Scalar>& clr_min, vector<Scalar>& clr_max,  vector<double> largestSizeM1, Mat& test){//fnc
@@ -612,7 +631,7 @@ cout<<"WE ARE IN DEFINE_COLOR" << endl;
     HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src_gray.rows/8, 200, 100, 0, 0 );
 
     if(circles.size()!=0)	
-      maxNmb = 10;
+      maxNmb = 11;
 
   }//if4
 
@@ -679,9 +698,8 @@ void define_color_using_pixels(vector<string>& clr_definedM2, Mat& roi,   vector
 }
 
 void comparation(vector<string>& clr_definedM1, vector<string>& clr_definedM2, int nmb, vector<RotatedRect>& minRect){
-  cout<<"CONTOUR NMB: "<<nmb<<endl;
-//  cout<<"SizeM1: "<<clr_definedM1.size()<<endl;
-//   cout<<"Position "<<  minRect[nmb].center <<endl;
+
+
   for(int i = 0; i < clr_definedM1.size(); i++)
 	cout<< i <<" Color of methode I is "<<clr_definedM1[i]<<endl;
 //  cout<<"SizeM2: "<<clr_definedM2.size()<<endl;
@@ -771,3 +789,5 @@ void perspective_transformation(Mat& input, Mat& output, RotatedRect minRect){
     //If the picture is vertical, we make her horizontal
   
 }
+
+

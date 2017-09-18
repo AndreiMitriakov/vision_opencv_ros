@@ -28,6 +28,6 @@ void wait ( int seconds );
 Mat binarisation(Mat& image, int color);
 void bounds(Mat &image);
 vector<Point>    getrect(vector< vector<Point> > & contours);
-vector<Mat> getImg(Mat& image, int color,Mat& conts, 	vector<int >& positions);//, int Case);
+vector<Mat> getImg(Mat& image, int color,Mat& conts, 	vector<int >& positions, Mat& digitsImg);//, int Case);
 
 //int getImgMain();

@@ -23,5 +23,5 @@ using namespace std;
   
 
 
-void videoOCR(Mat& image, Mat& dist, Mat& cnt, vector<vector<double > >& coords_rect, vector<string >& names, vector<int >& resultOCR);
+void videoOCR(Mat& image, Mat& dist, Mat& cnt, vector<vector<double > >& coords_rect, vector<string >& names, vector<int >& resultOCR, Mat& digits);
 //#endif

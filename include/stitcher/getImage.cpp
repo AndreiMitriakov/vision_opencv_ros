@@ -42,7 +42,7 @@ void bounds(Mat& img_to_recog){
 	
 }
 
-vector<Mat> getImg(Mat& image, int color, Mat& conts, 	vector<int >& positions){//, int Case){
+vector<Mat> getImg(Mat& image, int color, Mat& conts, 	vector<int >& positions, Mat& digitsImg){//, int Case){
 
 	Size size(14, 14);
 	vector<Mat> digits;
@@ -50,8 +50,9 @@ vector<Mat> getImg(Mat& image, int color, Mat& conts, 	vector<int >& positions){
 	int nmb = 2;
 	int type;
 	Mat imgbin, img_one_cnt, img_to_recog;
-	
+
         imgbin = binarisation(image, color);
+
 
 	//resize imgbin - deleting of border
 	int paramY;

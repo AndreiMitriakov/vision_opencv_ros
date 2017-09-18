@@ -38,13 +38,11 @@ void bounds(Mat &image);
 vector<Point>    getrect(vector< vector<Point> > & contours);
 vector<Mat> getImg(Mat& image, int color,Mat& conts, 	vector<int >& positions);//, int Case);
 
-
 void getSVMParams(SVM *svm);
-
 
 int SVMevaluate(Mat &testResponse,float &count, float &accuracy,vector<int> &testLabels);
 
-void loadTrainTestLabel2(vector<Mat> &testCells, Mat &image, Mat &conts, vector<int >& positions);
+void loadTrainTestLabel2(vector<Mat> &testCells, Mat &image, Mat &conts, vector<int >& positions, Mat& digits);
 
 
 void CreateTrainTestHOG2( vector<vector<float> > &testHOG, vector<Mat> &deskewedtestCells);
@@ -52,4 +50,4 @@ void ConvertVectortoMatrix2( vector<vector<float> > &testHOG, Mat &testMat);
 
 void SVMtrain2(Mat &testResponse,Mat &testMat);
 
-int OCR(Mat &image, Mat &conts, vector<int >& positions);
+int OCR(Mat &image, Mat &conts, vector<int >& positions, Mat& digits);

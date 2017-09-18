@@ -26,6 +26,7 @@
 
 
 #include "digit_recog.h"
+#include "getImage.h"
 
 #ifdef USE_OPENCV_3
 using namespace cv::ml;
@@ -81,12 +82,12 @@ int SVMevaluate(Mat &testResponse,float &count, float &accuracy,vector<int> &tes
     return res;
 }
 
-void loadTrainTestLabel2(vector<Mat> &testCells, Mat &image,Mat &conts, vector<int >& positions){
+void loadTrainTestLabel2(vector<Mat> &testCells, Mat &image,Mat &conts, vector<int >& positions, Mat& digits){
 
     int color = 0;
 
-    testCells = getImg(image, color, conts, positions);
-    
+    testCells = getImg(image, color, conts, positions, digits);
+
 //    cout<<"Size of testCells : "<<testCells.size()<<endl; 
    /* namedWindow("MyImage",CV_WINDOW_AUTOSIZE);
     imshow("MyImage", testCells[0]);
@@ -138,7 +139,7 @@ int reorganisation(vector<int >& positions, int res){
     cnt ++;
     cur = int ( cur / 10);
   }
-//  cout<<"cnt "<< cnt<<"; res "<<res<<endl;
+
 
   int cur_res = res;
   int a[cnt];
@@ -167,7 +168,7 @@ int reorganisation(vector<int >& positions, int res){
   return result;
 }
 
-int OCR(Mat &image, Mat &conts, vector<int >& positions){
+int OCR(Mat &image, Mat &conts, vector<int >& positions, Mat& digits){
 
     vector<Mat> trainCells;
     vector<Mat> testCells;
@@ -180,12 +181,11 @@ int OCR(Mat &image, Mat &conts, vector<int >& positions){
     float count = 0;
     float accuracy = 0 ;
 
-    loadTrainTestLabel2(testCells, image, conts, positions);
 
-//cout<<"testCells.size() "<<testCells.size()<<endl;
+
+    loadTrainTestLabel2(testCells, image, conts, positions, digits);
 
     if(testCells.size()>0){
-
 
       CreateTrainTestHOG2(testHOG,testCells);
 
@@ -199,10 +199,7 @@ int OCR(Mat &image, Mat &conts, vector<int >& positions){
     
       int res = SVMevaluate(testResponse,count,accuracy,testLabels);	
 	
-//      for(int i = 0; i < positions.size(); i ++)
-//gotten positions are inversed, so if one want a right order of digits, he should set the largest position as the first and so on
-//	cout<<positions[i]<<" pos ";
-//        cout<<endl;
+
 
       int res2 = reorganisation(positions, res);  
     
@@ -232,7 +229,7 @@ void bounds(Mat& img_to_recog){
 	
 }
 
-vector<Mat> getImg(Mat& image, int color, Mat& conts, 	vector<int >& positions){//, int Case){
+vector<Mat> getImg(Mat& image, int color, Mat& conts, 	vector<int >& positions,  Mat& digitsImg){//, int Case){
 
 	Size size(14, 14);
 	vector<Mat> digits;
@@ -242,7 +239,8 @@ vector<Mat> getImg(Mat& image, int color, Mat& conts, 	vector<int >& positions){
 	Mat imgbin, img_one_cnt, img_to_recog;
 	
         imgbin = binarisation(image, color);
-
+cout << " IM IN getImg "<< endl;
+	digitsImg = imgbin; 
 	//resize imgbin - deleting of border
 	int paramY;
 	int borderX = int( imgbin.cols / 20);// borders cutting
@@ -424,12 +422,9 @@ Mat binarisation(Mat& image, int color)//, int Case)
 	 
 	  int iLowH =0;
 	  int iHighH = 256;
-
-	  int iLowS = 50; 
+	  int iLowS = 0; 
   	  int iHighS = 256;
-
-	  int iLowV = 1;
-
+	  int iLowV = 0;
 	  int iHighV = 120; //}
 
 	/*if(color == 0){

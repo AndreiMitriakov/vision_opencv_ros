@@ -17,6 +17,7 @@ namespace enc = sensor_msgs::image_encodings;
 static const char WINDOW[] = "Image Processed";
 static const char WINDOW2[] = "Image dist";
 static const char WINDOW3[] = "Image cnt";
+static const char WINDOW4[] = "Image test";
 
 image_transport::Publisher pub;
 ros::Publisher pose_pub;
@@ -61,6 +62,7 @@ int return_number_of_color(string curClr) {
   if(curClr == "valve")
     return 13;
 }
+
 using namespace cv;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& original_image)
@@ -70,10 +72,12 @@ void imageCallback(const sensor_msgs::ImageConstPtr& original_image)
     vector<string > names;
     vector<int > namesInt;
     cv::Mat dist;
-    cv::Mat cnt;
+    cv::Mat cnt, src_gray;
+    cv::Mat digits, return_blue;
+    bool yn;
+    Mat digits1;
     cv::Mat imgValve;
     vector<int > resultOCR;
-
     try
     {
         cv_ptr = cv_bridge::toCvCopy(original_image, enc::BGR8);
@@ -86,32 +90,29 @@ void imageCallback(const sensor_msgs::ImageConstPtr& original_image)
         return;
     }
 //cout<<"------------------START------------------"<<endl;
-
-//cout<<"Before videoOCR"<<endl;
-    videoOCR(cv_ptr->image, dist, cnt, coords_rect, names, resultOCR);
+    videoOCR(cv_ptr->image, dist, cnt, coords_rect, names, resultOCR, digits);
     cv::imshow(WINDOW3, cnt);
-    cv::imshow(WINDOW2, dist);
-
-//cout<<"After videoOCR, before valve. Size of cv_ptr2->image "<< cv_ptr2->image.size() << " SIZE OF imgValve "<< imgValve.size() <<endl;
+    cv::imshow(WINDOW2, dist);//dist);
+    if(digits.cols != 0)
+      cv::imshow(WINDOW4, digits);
 
     if(valve_ == true){
       valve(cv_ptr2->image, imgValve, coords_valve);
-//cout<<"After valve " <<  " SIZE OF imgValve "<< imgValve.size[0] <<endl;
+
 //      names.push_back("valve");
     if((imgValve.size[0]  != 0)&& (imgValve.size[1]  != 0) ) 
         cv::imshow(WINDOW, imgValve);
     }
 
-//cout<<"After valve"<<endl;
+
     for(int i = 0; i < names.size(); i++){
       for(int j = 0; j < names.size(); j++){
         namesInt.push_back( return_number_of_color(names[j]) );
-
  	if( (namesInt[j] == 12) && (valve_ == false) )
 	  valve_ = true;
       }
     }
-//cout<<"After renaming"<<endl;
+
 
     if((coords_valve.size()!=0)&&(valve_ == true)){
       msg_pose.linear.x = coords_valve[0][0];
@@ -120,27 +121,27 @@ void imageCallback(const sensor_msgs::ImageConstPtr& original_image)
       msg_pose.angular.x = coords_valve[0][3];
       pose_pub.publish(msg_pose);
     }
-//cout<<"After msg pose"<<endl;
+
     if((coords_rect.size()!=0)){
       for(int k = 0; k < coords_rect.size(); k++){
+
         msg_poi.position[0] = coords_rect[k][0];
         msg_poi.position[1] = coords_rect[k][1];
         msg_poi.position[2] = coords_rect[k][2];
         msg_poi.name = namesInt[k];
+
 	if(k < resultOCR.size())
           msg_poi.result = resultOCR[k];
 	else
           msg_poi.result = 0;
         poi_pub.publish(msg_poi);
+
       }
     }
-
-
+    
+   
     pub.publish(cv_ptr->toImageMsg());
-//cout<<"After msg poi"<<endl;
-    //part of rect messages
-//cout<<"------------------FINISH------------------"<<endl;
-    //names: from string to enum
+
 
     cv::waitKey(3);
 
@@ -181,3 +182,23 @@ int main(int argc, char **argv)
   }
 
 }
+
+/*
+Mat src_gray;
+         cvtColor( cv_ptr->image, src_gray, CV_BGR2GRAY );
+        GaussianBlur( src_gray, src_gray, Size(9, 9), 2, 2 );
+
+         vector<Vec3f> circles;
+         HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src_gray.rows/8, 200, 100, 0, 0 );
+
+for( size_t i = 0; i < circles.size(); i++ )
+  {
+      Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+      int radius = cvRound(circles[i][2]);
+      // circle center
+      circle( src_gray, center, 3, Scalar(0,255,0), -1, 8, 0 );
+      // circle outline
+      circle( src_gray, center, radius, Scalar(0,0,255), 3, 8, 0 );
+   }
+
+*/

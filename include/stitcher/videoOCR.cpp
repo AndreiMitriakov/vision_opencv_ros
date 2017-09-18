@@ -25,7 +25,7 @@ using namespace std;
   
 
   
-void videoOCR(Mat& src, Mat& dist, Mat& cnt, vector<vector<double > >& coords_rect, vector<string >& names, vector<int >& resultOCR)
+void videoOCR(Mat& src, Mat& dist, Mat& cnt, vector<vector<double > >& coords_rect, vector<string >& names, vector<int >& resultOCR, Mat& digits)
 {
     //initialisation
 	
@@ -65,7 +65,7 @@ void videoOCR(Mat& src, Mat& dist, Mat& cnt, vector<vector<double > >& coords_re
         for(int j = 0; j < outputFinalMax.size(); j++ ){
 	  vector<RotatedRect> oneRect;//( 1 );
 	  oneRect.push_back(outputFinalMax[j]);
-  //        cout<<"IM HERE 1"<<endl;
+    //      cout<<"outputFinalMax "<<outputFinalMax.size() <<endl;
           vector<vector<double > >  crds;
 	  finddistance(image, res, oneRect, false, crds);
           coords_rect.push_back(crds[0]);
@@ -81,10 +81,11 @@ void videoOCR(Mat& src, Mat& dist, Mat& cnt, vector<vector<double > >& coords_re
 	}
 	
 cout<<"-------Start---------"<<endl;
-//cout<<"Number of yellow images "<<roiJeune.size() <<endl;
+cout<<"Number of yellow images "<<roiJeune.size() <<endl;
 	if(roiJeune.size() != 0)
 	  for(int i = 0; i < roiJeune.size(); i++){
-            resultOCR.push_back( OCR(roiJeune[i], conts, positions) );
+
+            resultOCR.push_back( OCR(roiJeune[i], conts, positions, digits) );
             if(resultOCR[0] != -999)
 	      cout<<"DIGITS : "<<resultOCR[0]<<" from yellow image nmb "<< i << endl;
 	    else	
@@ -98,7 +99,8 @@ cout<<"-------Finish---------"<<endl;
 	else
 	  dist = res;
 
-	cnt = imgCNT;	
+          cnt = imgCNT;	
+//	cnt = imgCNT;	
 
 
 
